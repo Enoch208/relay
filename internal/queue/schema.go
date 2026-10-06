@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS relay_jobs (
  id text PRIMARY KEY,
  queue text NOT NULL,
  state text NOT NULL CHECK (state IN ('pending','leased','retry_wait','completed','dead_letter')),
- payload jsonb NOT NULL,
+ payload json NOT NULL,
  attempt integer NOT NULL DEFAULT 0 CHECK (attempt >= 0),
  max_attempts integer NOT NULL CHECK (max_attempts BETWEEN 1 AND 1000),
  lease_token text,

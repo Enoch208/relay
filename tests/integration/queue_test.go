@@ -31,7 +31,7 @@ func openStore(t *testing.T) (*queue.Store, queue.Config) {
 	cfg.LeaseDuration = 120 * time.Millisecond
 	cfg.RetryBase = 10 * time.Millisecond
 	cfg.RetryMax = 40 * time.Millisecond
-	cfg.IdempotencyWindow = 200 * time.Millisecond
+	cfg.IdempotencyWindow = time.Second
 	s, err := queue.Open(context.Background(), database(t), cfg)
 	if err != nil {
 		t.Fatal(err)

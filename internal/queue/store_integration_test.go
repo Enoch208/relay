@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -14,11 +15,33 @@ import (
 
 func integrationStore(t *testing.T) (*Store, string) {
 	t.Helper()
-	url := os.Getenv("RELAY_TEST_DATABASE_URL")
-	if url == "" {
+	databaseURL := os.Getenv("RELAY_TEST_DATABASE_URL")
+	if databaseURL == "" {
 		t.Skip("RELAY_TEST_DATABASE_URL is not set")
 	}
-	s, err := Open(context.Background(), url, DefaultConfig())
+	admin, err := Open(context.Background(), databaseURL, DefaultConfig())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(admin.Close)
+	name := "queue_test_" + identifier()
+	if _, err = admin.pool.Exec(context.Background(), `CREATE SCHEMA `+name); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if _, err := admin.pool.Exec(context.Background(), `DROP SCHEMA `+name+` CASCADE`); err != nil {
+			t.Error(err)
+		}
+	})
+	parsed, err := url.Parse(databaseURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	params := parsed.Query()
+	params.Set("search_path", name)
+	params.Set("application_name", name)
+	parsed.RawQuery = params.Encode()
+	s, err := Open(context.Background(), parsed.String(), DefaultConfig())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,15 +49,6 @@ func integrationStore(t *testing.T) (*Store, string) {
 	if err = s.Migrate(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	name := "queue_test_" + identifier()
-	t.Cleanup(func() {
-		if _, err := s.pool.Exec(context.Background(), `DELETE FROM relay_idempotency WHERE queue=$1`, name); err != nil {
-			t.Error(err)
-		}
-		if _, err := s.pool.Exec(context.Background(), `DELETE FROM relay_jobs WHERE queue=$1`, name); err != nil {
-			t.Error(err)
-		}
-	})
 	return s, name
 }
 
@@ -78,7 +92,7 @@ func TestIntegrationLeaseExpiryAfterLockWait(t *testing.T) {
 			deadline := time.Now().Add(800 * time.Millisecond)
 			waiting := false
 			for time.Now().Before(deadline) {
-				err = s.pool.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%COALESCE(lease_token%' AND query LIKE '%WHERE id=$1 FOR UPDATE%')`).Scan(&waiting)
+				err = s.pool.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND application_name=$1 AND wait_event_type='Lock' AND query LIKE '%COALESCE(lease_token%' AND query LIKE '%WHERE id=$1 FOR UPDATE%')`, name).Scan(&waiting)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -120,7 +134,7 @@ func TestIntegrationIndependentStoresClaimOnce(t *testing.T) {
 	first, name := integrationStore(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	second, err := Open(ctx, os.Getenv("RELAY_TEST_DATABASE_URL"), DefaultConfig())
+	second, err := Open(ctx, first.pool.Config().ConnString(), DefaultConfig())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +191,7 @@ func TestIntegrationDatabaseUnavailable(t *testing.T) {
 	s, name := integrationStore(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	closed, err := Open(ctx, os.Getenv("RELAY_TEST_DATABASE_URL"), DefaultConfig())
+	closed, err := Open(ctx, s.pool.Config().ConnString(), DefaultConfig())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -241,12 +255,27 @@ func TestIntegrationCanceledLeaseMutationDoesNotChangeJob(t *testing.T) {
 	}
 }
 
-func TestIntegrationUnsupportedJSONRejected(t *testing.T) {
+func TestIntegrationPayloadBytesPreserved(t *testing.T) {
 	s, name := integrationStore(t)
-	for _, payload := range []string{`{"value":"\u0000"}`, `{"value":1e999999}`} {
-		_, _, err := s.Enqueue(context.Background(), name, Submit{Payload: json.RawMessage(payload)})
-		if !errors.Is(err, ErrInvalid) {
-			t.Fatalf("unsupported JSON %s returned %v", strings.TrimSpace(payload), err)
+	for _, payload := range []string{
+		`{"value":"\u0000"}`,
+		`{"value":1e999999}`,
+		`{"values":[` + strings.TrimSuffix(strings.Repeat("1e100000,", 30), ",") + `]}`,
+		`{ "values": [1, 2, 3] }`,
+	} {
+		submitted, _, err := s.Enqueue(context.Background(), name, Submit{Payload: json.RawMessage(payload)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(submitted.Payload) != payload {
+			t.Fatalf("payload changed on submission: got %d bytes, want %d", len(submitted.Payload), len(payload))
+		}
+		stored, err := s.Get(context.Background(), submitted.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(stored.Payload) != payload {
+			t.Fatalf("payload changed in storage: got %d bytes, want %d", len(stored.Payload), len(payload))
 		}
 	}
 }
