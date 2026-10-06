@@ -1,0 +1,200 @@
+{
+  "time_utc": "2026-10-06T18:11:40Z",
+  "jobs_per_phase": 1000,
+  "repetitions": 3,
+  "connection_limit": 32,
+  "environment": {
+    "cpu": "Apple M5",
+    "fsync": "on",
+    "go": "go1.26.5",
+    "gomaxprocs": "10",
+    "logical_cpus": "10",
+    "max_connections": "100",
+    "os": "Darwin 25.6.0",
+    "platform": "darwin/arm64",
+    "postgres": "PostgreSQL 15.17 (Homebrew) on aarch64-apple-darwin25.2.0, compiled by Apple clang version 17.0.0 (clang-1700.6.3.2), 64-bit",
+    "ram_bytes": "25769803776",
+    "shared_buffers": "128MB",
+    "synchronous_commit": "on"
+  },
+  "runs": [
+    {
+      "workers": 1,
+      "repetition": 1,
+      "enqueue_per_second": 5855.820905573423,
+      "claim_per_second": 5086.794473496908,
+      "ack_per_second": 4468.345126040845,
+      "end_to_end_per_second": 1359.5819499773934,
+      "claim_p50_ms": 0.174667,
+      "claim_p90_ms": 0.220875,
+      "claim_p99_ms": 0.596125
+    },
+    {
+      "workers": 1,
+      "repetition": 2,
+      "enqueue_per_second": 6844.055037180364,
+      "claim_per_second": 5280.620991734735,
+      "ack_per_second": 5260.212867664222,
+      "end_to_end_per_second": 1530.3399466703768,
+      "claim_p50_ms": 0.175375,
+      "claim_p90_ms": 0.228458,
+      "claim_p99_ms": 0.344666
+    },
+    {
+      "workers": 1,
+      "repetition": 3,
+      "enqueue_per_second": 3020.342763598527,
+      "claim_per_second": 5502.909798377182,
+      "ack_per_second": 5019.436714595561,
+      "end_to_end_per_second": 1830.4925729942138,
+      "claim_p50_ms": 0.171875,
+      "claim_p90_ms": 0.209833,
+      "claim_p99_ms": 0.311542
+    },
+    {
+      "workers": 10,
+      "repetition": 1,
+      "enqueue_per_second": 7062.78698266489,
+      "claim_per_second": 11156.688290150832,
+      "ack_per_second": 13903.210354154531,
+      "end_to_end_per_second": 7741.870552053435,
+      "claim_p50_ms": 0.785833,
+      "claim_p90_ms": 1.263125,
+      "claim_p99_ms": 3.494584
+    },
+    {
+      "workers": 10,
+      "repetition": 2,
+      "enqueue_per_second": 26440.861707683052,
+      "claim_per_second": 22123.526711393064,
+      "ack_per_second": 23588.614747512303,
+      "end_to_end_per_second": 7962.826912166779,
+      "claim_p50_ms": 0.431166,
+      "claim_p90_ms": 0.537666,
+      "claim_p99_ms": 0.919375
+    },
+    {
+      "workers": 10,
+      "repetition": 3,
+      "enqueue_per_second": 26627.022225815097,
+      "claim_per_second": 18759.643511995113,
+      "ack_per_second": 23078.853356711905,
+      "end_to_end_per_second": 6519.428970778987,
+      "claim_p50_ms": 0.456417,
+      "claim_p90_ms": 0.565917,
+      "claim_p99_ms": 1.225583
+    },
+    {
+      "workers": 50,
+      "repetition": 1,
+      "enqueue_per_second": 22201.254370871953,
+      "claim_per_second": 18169.49893118831,
+      "ack_per_second": 29254.165632288124,
+      "end_to_end_per_second": 9470.440614522497,
+      "claim_p50_ms": 2.060083,
+      "claim_p90_ms": 3.497708,
+      "claim_p99_ms": 18.96575
+    },
+    {
+      "workers": 50,
+      "repetition": 2,
+      "enqueue_per_second": 30186.43838635496,
+      "claim_per_second": 23433.2203250661,
+      "ack_per_second": 29536.752950906222,
+      "end_to_end_per_second": 10097.159921343125,
+      "claim_p50_ms": 1.957333,
+      "claim_p90_ms": 2.827,
+      "claim_p99_ms": 4.468709
+    },
+    {
+      "workers": 50,
+      "repetition": 3,
+      "enqueue_per_second": 34292.13220522277,
+      "claim_per_second": 23259.780557461116,
+      "ack_per_second": 30610.05846521167,
+      "end_to_end_per_second": 9590.122112846986,
+      "claim_p50_ms": 1.815042,
+      "claim_p90_ms": 2.643875,
+      "claim_p99_ms": 9.912792
+    },
+    {
+      "workers": 100,
+      "repetition": 1,
+      "enqueue_per_second": 30288.91842058435,
+      "claim_per_second": 23691.629747210307,
+      "ack_per_second": 29186.42831083546,
+      "end_to_end_per_second": 9376.520021800408,
+      "claim_p50_ms": 4.088625,
+      "claim_p90_ms": 4.689292,
+      "claim_p99_ms": 5.347125
+    },
+    {
+      "workers": 100,
+      "repetition": 2,
+      "enqueue_per_second": 28962.17632450983,
+      "claim_per_second": 19479.34970762275,
+      "ack_per_second": 28429.34924338272,
+      "end_to_end_per_second": 8810.685867665155,
+      "claim_p50_ms": 4.668875,
+      "claim_p90_ms": 6.285125,
+      "claim_p99_ms": 9.377875
+    },
+    {
+      "workers": 100,
+      "repetition": 3,
+      "enqueue_per_second": 30889.5021347426,
+      "claim_per_second": 22164.45131867514,
+      "ack_per_second": 28015.81492752659,
+      "end_to_end_per_second": 9420.143091973567,
+      "claim_p50_ms": 4.321708,
+      "claim_p90_ms": 5.123,
+      "claim_p99_ms": 5.882334
+    }
+  ],
+  "medians": [
+    {
+      "workers": 1,
+      "repetition": 0,
+      "enqueue_per_second": 5855.820905573423,
+      "claim_per_second": 5280.620991734735,
+      "ack_per_second": 5019.436714595561,
+      "end_to_end_per_second": 1530.3399466703768,
+      "claim_p50_ms": 0.174667,
+      "claim_p90_ms": 0.220875,
+      "claim_p99_ms": 0.344666
+    },
+    {
+      "workers": 10,
+      "repetition": 0,
+      "enqueue_per_second": 26440.861707683052,
+      "claim_per_second": 18759.643511995113,
+      "ack_per_second": 23078.853356711905,
+      "end_to_end_per_second": 7741.870552053435,
+      "claim_p50_ms": 0.456417,
+      "claim_p90_ms": 0.565917,
+      "claim_p99_ms": 1.225583
+    },
+    {
+      "workers": 50,
+      "repetition": 0,
+      "enqueue_per_second": 30186.43838635496,
+      "claim_per_second": 23259.780557461116,
+      "ack_per_second": 29536.752950906222,
+      "end_to_end_per_second": 9590.122112846986,
+      "claim_p50_ms": 1.957333,
+      "claim_p90_ms": 2.827,
+      "claim_p99_ms": 9.912792
+    },
+    {
+      "workers": 100,
+      "repetition": 0,
+      "enqueue_per_second": 30288.91842058435,
+      "claim_per_second": 22164.45131867514,
+      "ack_per_second": 28429.34924338272,
+      "end_to_end_per_second": 9376.520021800408,
+      "claim_p50_ms": 4.321708,
+      "claim_p90_ms": 5.123,
+      "claim_p99_ms": 5.882334
+    }
+  ]
+}

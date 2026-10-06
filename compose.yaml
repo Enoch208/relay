@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: relay
+      POSTGRES_PASSWORD: relay
+      POSTGRES_DB: relay
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relay -d relay"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  relay:
+    build: .
+    environment:
+      DATABASE_URL: postgres://relay:relay@postgres:5432/relay?sslmode=disable
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    stop_grace_period: 30s
+  worker:
+    build: .
+    entrypoint: ["relay-worker"]
+    environment:
+      RELAY_URL: http://relay:8080
+      QUEUE: default
+      CONCURRENCY: "4"
+    profiles: ["worker"]
+    depends_on:
+      - relay
+    stop_grace_period: 30s
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./deploy/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - relay
+volumes:
+  postgres:

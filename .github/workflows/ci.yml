@@ -1,0 +1,44 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: relay
+          POSTGRES_PASSWORD: relay
+          POSTGRES_DB: relay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U relay -d relay"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      RELAY_TEST_DATABASE_URL: postgres://relay:relay@localhost:5432/relay?sslmode=disable
+      DATABASE_URL: postgres://relay:relay@localhost:5432/relay?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Format
+        run: test -z "$(gofmt -l .)"
+      - name: Vet
+        run: go vet ./...
+      - name: Test
+        run: go test -count=1 ./...
+      - name: Race and integration tests
+        run: go test -race -count=1 -timeout=5m ./...
+      - name: Build
+        run: go build ./cmd/...
+      - name: Benchmark smoke test
+        run: go run ./cmd/relay-bench -jobs 20 -workers 1,10 -repetitions 1
+      - name: Container build
+        run: docker build -t relay:ci .
+      - name: Container smoke test
+        run: ./scripts/container-smoke.sh
